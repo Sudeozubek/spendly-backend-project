@@ -2,70 +2,75 @@ const {
   addExpense,
   getAllExpenses: getAllExpensesFromStore,
   findExpenseById,
+  replaceExpense,
+  deleteExpenseById,
 } = require("../data/expenses");
 
-// Stage 6'da diğer işlemler tek tek eklenecek.
-function notImplementedYet(req, res) {
-  res.status(501).json({
-    success: false,
-    message: "Bu işlem bir sonraki Stage 6 adımında eklenecek.",
-  });
+/**
+ * POST ve PUT için ortak doğrulama.
+ * Tam güncelleme (PUT) kısmi alan kabul etmez — tüm zorunlu alanlar body'de olmalı.
+ * Hata varsa { error: { status, message } }, yoksa { payload } döner.
+ * id, createdAt, updatedAt body'den okunmaz; sunucu yönetir.
+ */
+function validateExpenseBody(body) {
+  const { title, amount, category, description, date } = body;
+
+  if (typeof title !== "string" || title.trim() === "") {
+    return {
+      error: { status: 400, message: "title zorunludur ve boş olamaz." },
+    };
+  }
+
+  if (typeof amount !== "number" || amount <= 0) {
+    return {
+      error: { status: 400, message: "amount pozitif bir sayı olmalıdır." },
+    };
+  }
+
+  if (typeof category !== "string" || category.trim() === "") {
+    return {
+      error: { status: 400, message: "category zorunludur ve boş olamaz." },
+    };
+  }
+
+  if (typeof date !== "string" || date.trim() === "") {
+    return {
+      error: { status: 400, message: "date zorunludur (örnek: 2026-10-14)." },
+    };
+  }
+
+  if (description !== undefined && typeof description !== "string") {
+    return {
+      error: { status: 400, message: "description metin (string) olmalıdır." },
+    };
+  }
+
+  return {
+    payload: {
+      title: title.trim(),
+      amount,
+      category: category.trim(),
+      description,
+      date: date.trim(),
+    },
+  };
 }
 
 /**
  * POST /api/expenses — yeni harcama kaydı oluşturur.
- * İstemci id ve timestamp göndermemeli; sunucu addExpense içinde üretir.
  */
 function createExpense(req, res) {
-  // express.json() sayesinde gövde req.body'de; Content-Type: application/json gerekir.
-  const { title, amount, category, description, date } = req.body;
+  const validation = validateExpenseBody(req.body);
 
-  // Başlık zorunlu ve boşluklardan arındırıldığında anlamlı olmalı.
-  if (typeof title !== "string" || title.trim() === "") {
-    return res.status(400).json({
+  if (validation.error) {
+    return res.status(validation.error.status).json({
       success: false,
-      message: "title zorunludur ve boş olamaz.",
+      message: validation.error.message,
     });
   }
 
-  // Tutar sayı olmalı; string "50" kabul etmem — JSON'da number gönderilmeli.
-  if (typeof amount !== "number" || amount <= 0) {
-    return res.status(400).json({
-      success: false,
-      message: "amount pozitif bir sayı olmalıdır.",
-    });
-  }
+  const newExpense = addExpense(validation.payload);
 
-  if (typeof category !== "string" || category.trim() === "") {
-    return res.status(400).json({
-      success: false,
-      message: "category zorunludur ve boş olamaz.",
-    });
-  }
-
-  if (typeof date !== "string" || date.trim() === "") {
-    return res.status(400).json({
-      success: false,
-      message: "date zorunludur (örnek: 2026-10-14).",
-    });
-  }
-
-  if (description !== undefined && typeof description !== "string") {
-    return res.status(400).json({
-      success: false,
-      message: "description metin (string) olmalıdır.",
-    });
-  }
-
-  const newExpense = addExpense({
-    title: title.trim(),
-    amount,
-    category: category.trim(),
-    description,
-    date: date.trim(),
-  });
-
-  // 201 Created: yeni kaynak başarıyla oluşturulduğunu belirtir.
   return res.status(201).json({
     success: true,
     data: newExpense,
@@ -74,22 +79,95 @@ function createExpense(req, res) {
 
 /**
  * GET /api/expenses — bellekteki tüm harcamaları listeler.
- * Gövde (body) gerekmez; sadece URL ve GET metodu yeterli.
  */
 function getAllExpenses(req, res) {
   const expenses = getAllExpensesFromStore();
 
-  // Kayıt yoksa boş dizi dönerim; bu hata değil, 200 OK kalır.
   return res.status(200).json({
     success: true,
     data: expenses,
   });
 }
 
+/**
+ * GET /api/expenses/:id — tek bir harcamayı id ile getirir.
+ */
+function getExpenseById(req, res) {
+  const { id } = req.params;
+  const expense = findExpenseById(id);
+
+  if (!expense) {
+    return res.status(404).json({
+      success: false,
+      message: `id ${id} ile harcama bulunamadı.`,
+    });
+  }
+
+  return res.status(200).json({
+    success: true,
+    data: expense,
+  });
+}
+
+/**
+ * PUT /api/expenses/:id — tam güncelleme.
+ * İstemci güncel title, amount, category, date (ve isteğe bağlı description) gönderir.
+ * Eksik veya geçersiz alan → 400. Kayıt yok → 404.
+ * replaceExpense id ve createdAt'i korur; updatedAt yenilenir.
+ */
+function updateExpense(req, res) {
+  const { id } = req.params;
+  const existing = findExpenseById(id);
+
+  if (!existing) {
+    return res.status(404).json({
+      success: false,
+      message: `id ${id} ile harcama bulunamadı.`,
+    });
+  }
+
+  const validation = validateExpenseBody(req.body);
+
+  if (validation.error) {
+    return res.status(validation.error.status).json({
+      success: false,
+      message: validation.error.message,
+    });
+  }
+
+  const updated = replaceExpense(existing, validation.payload);
+
+  return res.status(200).json({
+    success: true,
+    data: updated,
+  });
+}
+
+/**
+ * DELETE /api/expenses/:id — harcamayı bellekten kaldırır.
+ * Gövde gerekmez. Başarıda açık bir mesaj dönerim (PDF / teslim için anlaşılır olsun).
+ */
+function deleteExpense(req, res) {
+  const { id } = req.params;
+  const deleted = deleteExpenseById(id);
+
+  if (!deleted) {
+    return res.status(404).json({
+      success: false,
+      message: `id ${id} ile harcama bulunamadı.`,
+    });
+  }
+
+  return res.status(200).json({
+    success: true,
+    message: `id ${id} harcama silindi.`,
+  });
+}
+
 module.exports = {
   createExpense,
   getAllExpenses,
-  getExpenseById: notImplementedYet,
-  updateExpense: notImplementedYet,
-  deleteExpense: notImplementedYet,
+  getExpenseById,
+  updateExpense,
+  deleteExpense,
 };

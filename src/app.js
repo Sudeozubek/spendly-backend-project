@@ -3,19 +3,20 @@
 const express = require("express");
 const logger = require("./middleware/logger");
 const expenseRoutes = require("./routes/expenseRoutes");
+const notFound = require("./middleware/notFound");
+const errorHandler = require("./middleware/errorHandler");
 
 // Uygulama nesnesi: route'ları ve middleware'leri buraya bağlayacağım.
 // Henüz sunucu dinlemiyor; sadece "nasıl cevap vereceğim" planı burada.
 const app = express();
 
+// Logger'ı route'lardan önce tutuyorum; mümkün olduğunca erken koyarak
+// bozuk JSON gibi durumlarda da isteğin method ve path'ini görebilirim.
+app.use(logger);
+
 // express.json() bir middleware'dir.
 // İstemci POST/PUT ile JSON gönderdiğinde gövdeyi okuyup req.body'ye yazması için bunu eklemem gerekir.
-// CRUD aşamasında harcama verisini req.body üzerinden alacağım.
 app.use(express.json());
-
-// Logger'ı route tanımlarından ÖNCE ekliyorum.
-// Böylece GET /, GET /api/expenses vb. her istek terminale düşer (PDF zorunluluğu).
-app.use(logger);
 
 // Harcama API'si: router içindeki path'ler "/" ile başlar, burada önek "/api/expenses" eklenir.
 // Örnek: router.post("/") → dışarıdan POST /api/expenses
@@ -26,9 +27,15 @@ app.use("/api/expenses", expenseRoutes);
 app.get("/", (req, res) => {
   res.json({
     success: true,
-    message: "Spendly API çalışıyor. CRUD mantığı Stage 6'da tamamlanacak.",
+    message: "Spendly API çalışıyor.",
   });
 });
+
+// Eşleşmeyen path'ler için 404 — route'lardan sonra olmalı.
+app.use(notFound);
+
+// Hata yakalama en sonda; bozuk JSON ve beklenmeyen 500'ler burada.
+app.use(errorHandler);
 
 // Bu dosyayı başka dosyalarda (server.js) kullanmak için dışa aktarıyorum.
 module.exports = app;
