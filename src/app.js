@@ -1,6 +1,7 @@
 // Express paketini projeme dahil ediyorum.
 // CommonJS'de dış paketleri require ile çağırırım.
 const express = require("express");
+const logger = require("./middleware/logger");
 
 // Uygulama nesnesi: route'ları ve middleware'leri buraya bağlayacağım.
 // Henüz sunucu dinlemiyor; sadece "nasıl cevap vereceğim" planı burada.
@@ -10,6 +11,10 @@ const app = express();
 // İstemci POST/PUT ile JSON gönderdiğinde gövdeyi okuyup req.body'ye yazması için bunu eklemem gerekir.
 // CRUD aşamasında harcama verisini req.body üzerinden alacağım.
 app.use(express.json());
+
+// Logger'ı route tanımlarından ÖNCE ekliyorum.
+// Böylece GET /, GET /api/expenses vb. her istek terminale düşer (PDF zorunluluğu).
+app.use(logger);
 
 // Geçici test route: sunucunun ayakta olduğunu kontrol etmek için.
 // Tarayıcı veya Postman ile GET http://localhost:3000/ yapılabilir.
