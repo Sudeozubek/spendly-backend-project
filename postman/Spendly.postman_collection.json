@@ -1,0 +1,118 @@
+{
+  "info": {
+    "name": "Spendly API",
+    "description": "Spendly harcama takip REST API — CRUD testleri",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "expenseId",
+      "value": "1"
+    }
+  ],
+  "item": [
+    {
+      "name": "Root - Health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/"
+      }
+    },
+    {
+      "name": "Create Expense",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Kahve\",\n  \"amount\": 45,\n  \"category\": \"Food\",\n  \"description\": \"latte\",\n  \"date\": \"2026-10-14\"\n}"
+        },
+        "url": "{{baseUrl}}/api/expenses"
+      }
+    },
+    {
+      "name": "List Expenses",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/expenses"
+      }
+    },
+    {
+      "name": "Get Expense by ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/expenses/{{expenseId}}"
+      }
+    },
+    {
+      "name": "Update Expense (full PUT)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Kahve XL\",\n  \"amount\": 55,\n  \"category\": \"Food\",\n  \"description\": \"sütlü\",\n  \"date\": \"2026-10-15\"\n}"
+        },
+        "url": "{{baseUrl}}/api/expenses/{{expenseId}}"
+      }
+    },
+    {
+      "name": "Delete Expense",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": "{{baseUrl}}/api/expenses/{{expenseId}}"
+      }
+    },
+    {
+      "name": "Get Expense - Not Found (404)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/expenses/99999"
+      }
+    },
+    {
+      "name": "Create - Invalid JSON (400)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"title\":"
+        },
+        "url": "{{baseUrl}}/api/expenses"
+      }
+    },
+    {
+      "name": "Unknown Route (404)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/yok"
+      }
+    }
+  ]
+}

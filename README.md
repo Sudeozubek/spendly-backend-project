@@ -1,0 +1,118 @@
+# Spendly API
+
+Basit harcama takip **REST API** — Node.js, Express.js ve bellek içi depolama ile staj bitirme projesi.
+
+## Özellikler
+
+- Harcama CRUD (oluştur, listele, detay, tam güncelleme, sil)
+- Custom logger middleware (method, endpoint, zaman damgası)
+- Tutarlı JSON yanıtlar ve temel hata yönetimi (400, 404, 500)
+
+## Teknoloji
+
+- Node.js
+- Express.js 5.x
+- JavaScript (CommonJS)
+- In-memory array (veritabanı yok)
+
+## Klasör yapısı
+
+```text
+spendly-api/
+├── src/
+│   ├── app.js
+│   ├── server.js
+│   ├── routes/
+│   │   └── expenseRoutes.js
+│   ├── controllers/
+│   │   └── expenseController.js
+│   ├── middleware/
+│   │   ├── logger.js
+│   │   ├── notFound.js
+│   │   └── errorHandler.js
+│   └── data/
+│       └── expenses.js
+├── docs/
+│   ├── PROJECT_OVERVIEW.md
+│   ├── DATA_MODEL.md
+│   ├── API_DESIGN.md
+│   ├── POSTMAN_TESTING.md
+│   └── screenshots/          ← Postman CRUD ekran görüntüleri (teslim)
+├── postman/
+│   └── Spendly.postman_collection.json
+├── package.json
+└── README.md
+```
+
+## Kurulum ve çalıştırma
+
+```bash
+git clone <repo-url>
+cd spendly-backend-project
+npm install
+npm start
+```
+
+Sunucu varsayılan olarak **http://localhost:3000** adresinde dinler.
+
+Farklı port:
+
+```bash
+PORT=4000 npm start
+```
+
+## Endpoint özetı
+
+| Method | URL | Açıklama |
+|--------|-----|----------|
+| GET | `/` | API çalışıyor mesajı |
+| POST | `/api/expenses` | Harcama oluştur |
+| GET | `/api/expenses` | Liste |
+| GET | `/api/expenses/:id` | Detay |
+| PUT | `/api/expenses/:id` | Tam güncelleme |
+| DELETE | `/api/expenses/:id` | Sil |
+
+Detaylı istek/yanıt örnekleri: [docs/API_DESIGN.md](docs/API_DESIGN.md)
+
+### Örnek oluşturma (POST)
+
+```bash
+curl -X POST http://localhost:3000/api/expenses \
+  -H "Content-Type: application/json" \
+  -d '{"title":"Kahve","amount":45,"category":"Food","date":"2026-10-14"}'
+```
+
+## Postman
+
+1. `npm start` açık olsun.
+2. Postman → Import → `postman/Spendly.postman_collection.json`
+3. Adım adım test: [docs/POSTMAN_TESTING.md](docs/POSTMAN_TESTING.md)
+
+## Bilinen sınırlamalar
+
+- Veriler **yalnızca RAM**'de; sunucu yeniden başladığında silinir.
+- Kimlik doğrulama yok.
+- Filtreleme / sayfalama / raporlama yok.
+
+## GitHub'a yayınlama
+
+1. GitHub'da **public** boş repo oluşturun.
+2. Proje klasöründe:
+
+```bash
+git init
+git add .
+git commit -m "Spendly REST API bitirme projesi"
+git branch -M main
+git remote add origin https://github.com/KULLANICI_ADINIZ/spendly-api.git
+git push -u origin main
+```
+
+3. `.env` veya şifre dosyası **commit etmeyin** (`node_modules` zaten `.gitignore` içinde).
+4. Teslim için `docs/PROJECT_OVERVIEW.md`, bu README ve `docs/screenshots/` içindeki Postman görsellerinin repoda olduğundan emin olun.
+
+## Dokümantasyon
+
+- [Proje tanıtımı](docs/PROJECT_OVERVIEW.md)
+- [Veri modeli](docs/DATA_MODEL.md)
+- [API tasarımı](docs/API_DESIGN.md)
