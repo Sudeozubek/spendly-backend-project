@@ -1,5 +1,7 @@
 const {
   addExpense,
+  getAllExpenses: getAllExpensesFromStore,
+  findExpenseById,
 } = require("../data/expenses");
 
 // Stage 6'da diğer işlemler tek tek eklenecek.
@@ -70,9 +72,23 @@ function createExpense(req, res) {
   });
 }
 
+/**
+ * GET /api/expenses — bellekteki tüm harcamaları listeler.
+ * Gövde (body) gerekmez; sadece URL ve GET metodu yeterli.
+ */
+function getAllExpenses(req, res) {
+  const expenses = getAllExpensesFromStore();
+
+  // Kayıt yoksa boş dizi dönerim; bu hata değil, 200 OK kalır.
+  return res.status(200).json({
+    success: true,
+    data: expenses,
+  });
+}
+
 module.exports = {
   createExpense,
-  getAllExpenses: notImplementedYet,
+  getAllExpenses,
   getExpenseById: notImplementedYet,
   updateExpense: notImplementedYet,
   deleteExpense: notImplementedYet,
