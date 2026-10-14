@@ -1,0 +1,13 @@
+# Bağımlılıklar — npm install ile her makinede yeniden oluşur, repoya eklenmez.
+node_modules/
+
+# Ortam değişkenleri — şifre veya gizli anahtar varsa burada tutulur.
+.env
+.env.*
+
+# macOS klasör meta verisi
+.DS_Store
+
+# Log dosyaları (ileride kullanırsak)
+*.log
+npm-debug.log*
